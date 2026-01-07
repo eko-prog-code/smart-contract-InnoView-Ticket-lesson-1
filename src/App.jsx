@@ -1,35 +1,49 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import { readContract } from "./blockchain/contract";
+import TicketForm from "./components/TicketForm";
+import TicketStats from "./components/TicketStats";
+import TicketList from "./components/TicketList";
+import ViewOnBlockchain from "./components/ViewOnBlockchain";
+import "./styles/app.css";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [tickets, setTickets] = useState([]);
+  const [stats, setStats] = useState({
+    total: 0,
+    remaining: 0,
+    quota: 20,
+  });
+
+  const loadData = async () => {
+    const list = await readContract.getAllTickets();
+    const total = Number(await readContract.totalMinted());
+    const remaining = Number(await readContract.remainingTickets());
+    const quota = Number(await readContract.ticketQuota());
+
+    setTickets(
+      list.map((t) => ({
+        id: Number(t.ticketId),
+        nama: t.namaPeserta,
+        tanggal: Number(t.tanggalTerbit),
+      }))
+    );
+
+    setStats({ total, remaining, quota });
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div className="container">
+      <h1>🎓 InnoView Academy</h1>
+      <p>Basic Programmer – Mengenal Teknologi Web</p>
 
-export default App
+      <TicketStats {...stats} />
+      <TicketForm onSuccess={loadData} />
+      <ViewOnBlockchain />
+      <TicketList tickets={tickets} />
+    </div>
+  );
+}
