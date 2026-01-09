@@ -51,9 +51,11 @@ export default function App() {
       <p>Basic Programmer – Mengenal Teknologi Web</p>
 
       <TicketStats {...stats} />
+      <ViewOnBlockchain />
 
-      {/* SEARCH */}
-      <div className="search-box">
+      <TicketForm onSuccess={loadData} />
+       {/* SEARCH */}
+       <div className="search-box">
         <input
           type="text"
           placeholder="🔍 Cari nama peserta..."
@@ -61,9 +63,6 @@ export default function App() {
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
-
-      <TicketForm onSuccess={loadData} />
-      <ViewOnBlockchain />
 
       <TicketList tickets={filteredTickets} />
     </div>
