@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { readContract } from "./blockchain/contract";
 import TicketForm from "./components/TicketForm";
 import TicketStats from "./components/TicketStats";
@@ -8,6 +8,7 @@ import "./styles/app.css";
 
 export default function App() {
   const [tickets, setTickets] = useState([]);
+  const [search, setSearch] = useState("");
   const [stats, setStats] = useState({
     total: 0,
     remaining: 0,
@@ -20,14 +21,16 @@ export default function App() {
     const remaining = Number(await readContract.remainingTickets());
     const quota = Number(await readContract.ticketQuota());
 
-    setTickets(
-      list.map((t) => ({
+    // 🔥 MAP + SORT (TERBARU DI ATAS)
+    const mappedTickets = list
+      .map((t) => ({
         id: Number(t.ticketId),
         nama: t.namaPeserta,
         tanggal: Number(t.tanggalTerbit),
       }))
-    );
+      .sort((a, b) => b.tanggal - a.tanggal);
 
+    setTickets(mappedTickets);
     setStats({ total, remaining, quota });
   };
 
@@ -35,15 +38,33 @@ export default function App() {
     loadData();
   }, []);
 
+  // 🔍 FILTER BERDASARKAN NAMA
+  const filteredTickets = useMemo(() => {
+    return tickets.filter((t) =>
+      t.nama.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [tickets, search]);
+
   return (
     <div className="container">
       <h1>🎓 InnoView Academy</h1>
       <p>Basic Programmer – Mengenal Teknologi Web</p>
 
       <TicketStats {...stats} />
-      <TicketForm onSuccess={loadData} />
       <ViewOnBlockchain />
-      <TicketList tickets={tickets} />
+
+      <TicketForm onSuccess={loadData} />
+       {/* SEARCH */}
+       <div className="search-box">
+        <input
+          type="text"
+          placeholder="🔍 Cari nama peserta..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
+      <TicketList tickets={filteredTickets} />
     </div>
   );
 }
